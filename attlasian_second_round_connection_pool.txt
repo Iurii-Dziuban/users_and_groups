@@ -1,0 +1,79 @@
+	interface ConnectionPool {
+  Connection getConnection();
+}
+
+// -------------------------------------------
+
+interface Connection {
+  void close();
+
+  // this is the least interesting part to this problem
+  Object execute(Object query);
+}
+
+// -------------------------------------------
+
+// Typical Client code
+
+Connection con = connectionPool.getConnection();
+try {
+    con.execute(query);
+} finally {
+    con.close();
+}
+con.execute(query2);
+
+// -------------------------------------------
+
+// Connection Pool Code
+class MyConnectionPool implements ConnectionPool {
+
+    private List<Connection> connections;
+    private boolean[] isFreeConnection;
+
+    MyConnectionPool(List<Connection> connections) {
+        // all connection are free
+        for (int i = 0; i < connections.size(); i++) {
+          connection.add(new ConnectionImpl(i, connections.get(i)));
+        }
+    }
+
+    Connection getConnection() {
+        for (int i = 0; i < isFreeConnection.length; i++) {
+          if (isFreeConnection[i]) {
+            isFreeConnection = false;
+            return connections.get(i);
+          }
+        }
+        throw new RuntimeException("No avalibale connections");
+    }
+
+    void freeConnection(int index) {
+      isFreeConnection[index] = true;
+    }
+}
+
+// Connection Impl
+
+class ConnectionImpl implements Connection {
+
+  private int index;
+  private Connection connection;
+  private MyConnectionPool connectionPool;
+  private boolean isClosed = false;
+  // copy constructor
+
+  void close() {
+    connectionPool.freeConnection(index);
+    isClosed = true;
+  }
+
+  // this is the least interesting part to this problem
+  Object execute(Object query) {
+    if (!isClosed) {
+       return connection.execute(query);
+    }
+    throw new RuntimeException("Connection is closed");
+  }
+}
+
